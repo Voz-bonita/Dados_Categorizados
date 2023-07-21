@@ -4,7 +4,7 @@ if (!require("pacman")) {
 pacman::p_load("readxl", "dplyr", "purrr", "glue", "ggplot2", "ggpubr")
 source("auxiliar.r", encoding = "UTF-8")
 
-
+set.seed(2023)
 raw_data <- read_excel("dados_trabalho.xlsx") %>%
     rename_all(~ c("ID", "Idade", "Socioecon", "Casa", "Setor", "Poupanca")) %>%
     select(-ID)
