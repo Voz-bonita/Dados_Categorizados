@@ -1,7 +1,7 @@
 if (!require("pacman")) {
     install.packages("pacman")
 }
-pacman::p_load("readxl", "dplyr", "purrr", "glue")
+pacman::p_load("readxl", "dplyr", "purrr", "glue", "ggplot2", "ggpubr")
 source("auxiliar.r", encoding = "UTF-8")
 
 
@@ -47,3 +47,24 @@ for (i in 1:n_models) {
 
     model_info_to_plot[i, "ACC"] <- sum(ytrue == yhat) / nrow(test)
 }
+
+aic_plot <- ggplot(
+    data = model_info_to_plot,
+    aes(x = `n_parametros`, y = `AIC`)
+) +
+    geom_point(size = 5) +
+    ylab("AIC") +
+    theme_bw()
+
+acc_plot <- ggplot(
+    data = model_info_to_plot,
+    aes(x = `n_parametros`, y = `ACC`)
+) +
+    geom_point(size = 5) +
+    xlab("Quantidade de parâmetros") +
+    ylab("Acurácia") +
+    theme_bw()
+
+
+ggarrange(aic_plot, acc_plot) %>%
+    ggsave(filename = "assets/MetricasXParametros.png")
