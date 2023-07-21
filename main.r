@@ -1,13 +1,18 @@
 if (!require("pacman")) {
     install.packages("pacman")
 }
-pacman::p_load("readxl", "dplyr", "purrr", "glue", "ggplot2", "ggpubr")
+pacman::p_load(
+    "readxl", "dplyr", "purrr",
+    "glue", "ggplot2", "ggpubr",
+    "fastDummies"
+)
 source("auxiliar.r", encoding = "UTF-8")
 
 set.seed(2023)
 raw_data <- read_excel("dados_trabalho.xlsx") %>%
     rename_all(~ c("ID", "Idade", "Socioecon", "Casa", "Setor", "Poupanca")) %>%
-    select(-ID)
+    dummy_cols(select_columns = "Socioecon") %>%
+    select(-c(ID, Socioecon, Socioecon_3))
 
 full_size <- nrow(raw_data)
 n_cols <- ncol(raw_data)
@@ -16,16 +21,18 @@ train <- raw_data[1:100, ]
 test <- raw_data[101:full_size, ]
 
 
+covariables <- names(train)[names(train) != "Poupanca"]
 all_models <- map(
     1:(n_cols - 1),
     ~ model_matrix_metrics(
         data = train,
-        combn(names(train)[1:(n_cols - 1)], .x)
+        combn(covariables, .x)
     )
 ) %>%
     reduce(c)
 
 n_models <- length(all_models)
+saturated_model <- all_models[[n_models]]
 model_info_to_plot <- data.frame(matrix(ncol = 7, nrow = n_models)) %>%
     rename_all(~ c(
         "Parametros", "n_parametros",
@@ -39,10 +46,12 @@ for (i in 1:n_models) {
     model_info_to_plot[i, "n_parametros"] <- length(
         current_model$coefficients
     )
-    model_info_to_plot[i, "G^2"] <- current_model$deviance
-    model_info_to_plot[i, "g.l."] <- current_model$df.residual
+    g2 <- current_model$deviance - saturated_model$deviance
+    g2_gl <- current_model$df.residual - saturated_model$df.residual
+    model_info_to_plot[i, "G^2"] <- g2
+    model_info_to_plot[i, "g.l."] <- g2_gl
     model_info_to_plot[i, "p-valor"] <- pchisq(
-        current_model$deviance, current_model$df.residual,
+        g2, g2_gl,
         lower.tail = FALSE
     )
     model_info_to_plot[i, "AIC"] <- current_model$aic
