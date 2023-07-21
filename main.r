@@ -25,15 +25,25 @@ all_models <- map(
 ) %>%
     reduce(c)
 
-
 n_models <- length(all_models)
-model_info_to_plot <- data.frame(matrix(ncol = 4, nrow = n_models)) %>%
-    rename_all(~ c("Parametros", "n_parametros", "AIC", "ACC"))
+model_info_to_plot <- data.frame(matrix(ncol = 7, nrow = n_models)) %>%
+    rename_all(~ c(
+        "Parametros", "n_parametros",
+        "G^2", "g.l.", "p-valor",
+        "AIC", "ACC"
+    ))
+
 for (i in 1:n_models) {
     current_model <- all_models[[i]]
     model_info_to_plot[i, "Parametros"] <- current_model$formula
     model_info_to_plot[i, "n_parametros"] <- length(
         current_model$coefficients
+    )
+    model_info_to_plot[i, "G^2"] <- current_model$deviance
+    model_info_to_plot[i, "g.l."] <- current_model$df.residual
+    model_info_to_plot[i, "p-valor"] <- pchisq(
+        current_model$deviance, current_model$df.residual,
+        lower.tail = FALSE
     )
     model_info_to_plot[i, "AIC"] <- current_model$aic
 
