@@ -2,6 +2,7 @@ if (!require("pacman")) {
     install.packages("pacman")
 }
 pacman::p_load("readxl", "dplyr", "purrr", "glue")
+source("auxiliar.r", encoding = "UTF-8")
 
 
 raw_data <- read_excel("dados_trabalho.xlsx") %>%
@@ -14,14 +15,6 @@ sample_order <- sample(1:full_size, size = full_size, replace = FALSE)
 train <- raw_data[1:100, ]
 test <- raw_data[101:full_size, ]
 
-model_matrix_metrics <- function(data, variable_matrix) {
-    models_formula <- apply(variable_matrix, MARGIN = 2, function(names_col) {
-        glue::glue("Poupanca ~ {paste(names_col, collapse = ' + ')}")
-    })
-    return(purrr::map(
-        models_formula, ~ glm(data = data, formula = .x, family = "binomial")
-    ))
-}
 
 all_models <- map(
     1:(n_cols - 1),
@@ -32,10 +25,6 @@ all_models <- map(
 ) %>%
     reduce(c)
 
-best_round_threshold <- function(data, model, par) {
-    yhat <- predict(model, data, type = "response") >= par
-    return(sum(data$Poupanca == yhat) / nrow(data))
-}
 
 n_models <- length(all_models)
 model_info_to_plot <- data.frame(matrix(ncol = 4, nrow = n_models)) %>%
