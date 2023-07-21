@@ -3,16 +3,14 @@ if (!require("pacman")) {
 }
 pacman::p_load(
     "readxl", "dplyr", "purrr",
-    "glue", "ggplot2", "ggpubr",
-    "fastDummies"
+    "glue", "ggplot2", "ggpubr"
 )
 source("auxiliar.r", encoding = "UTF-8")
 
 set.seed(2023)
 raw_data <- read_excel("dados_trabalho.xlsx") %>%
     rename_all(~ c("ID", "Idade", "Socioecon", "Casa", "Setor", "Poupanca")) %>%
-    dummy_cols(select_columns = "Socioecon") %>%
-    select(-c(ID, Socioecon, Socioecon_3))
+    select(-c(ID))
 
 full_size <- nrow(raw_data)
 n_cols <- ncol(raw_data)
@@ -33,6 +31,12 @@ all_models <- map(
 
 n_models <- length(all_models)
 saturated_model <- all_models[[n_models]]
+
+# RV para modelo saturado contra modelo apenas com intercepto
+g2 <- saturated_model$null.deviance - saturated_model$deviance
+g2_gl <- saturated_model$df.null - saturated_model$df.residual
+pchisq(g2, g2_gl, lower.tail = FALSE)
+
 model_info_to_plot <- data.frame(matrix(ncol = 7, nrow = n_models)) %>%
     rename_all(~ c(
         "Parametros", "n_parametros",
