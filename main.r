@@ -1,8 +1,8 @@
 if (!require("pacman")) {
     install.packages("pacman")
 }
-
 pacman::p_load("readxl", "dplyr", "purrr", "glue")
+
 
 raw_data <- read_excel("dados_trabalho.xlsx") %>%
     rename_all(~ c("ID", "Idade", "Socioecon", "Casa", "Setor", "Poupanca")) %>%
@@ -23,10 +23,11 @@ model_matrix_metrics <- function(data, variable_matrix) {
     ))
 }
 
-map(
+all_models <- map(
     1:(n_cols - 1),
     ~ model_matrix_metrics(
         data = train,
         combn(names(train)[1:(n_cols - 1)], .x)
     )
-)
+) %>%
+    reduce(c)
