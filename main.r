@@ -3,7 +3,8 @@ if (!require("pacman")) {
 }
 pacman::p_load(
     "readxl", "dplyr", "purrr",
-    "glue", "ggplot2", "ggpubr"
+    "glue", "ggplot2", "ggpubr",
+    "kableExtra"
 )
 source("auxiliar.r", encoding = "UTF-8")
 
@@ -70,6 +71,11 @@ for (i in 1:n_models) {
 
     model_info_to_plot[i, "ACC"] <- sum(ytrue == yhat) / nrow(test)
 }
+
+model_info_to_plot %>%
+    select(-n_parametros) %>%
+    filter(`p-valor` > 0.05) %>%
+    format_tab("Modelos não rejeitados pelo teste da razão de verossimilhança", digits = 3, format = "latex")
 
 aic_plot <- ggplot(
     data = model_info_to_plot,
