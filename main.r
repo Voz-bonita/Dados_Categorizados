@@ -75,7 +75,7 @@ for (i in 1:n_models) {
 model_info_to_plot %>%
     select(-n_parametros) %>%
     filter(`p-valor` > 0.05) %>%
-    format_tab("Modelos não rejeitados pelo teste da razão de verossimilhança", digits = 3, format = "latex")
+    format_tab("\\label{tab:mod_sel}Modelos não rejeitados pelo teste da razão de verossimilhança", digits = 3, format = "latex")
 
 aic_plot <- ggplot(
     data = model_info_to_plot,
