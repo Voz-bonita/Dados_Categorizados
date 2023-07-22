@@ -82,6 +82,7 @@ aic_plot <- ggplot(
     aes(x = `n_parametros`, y = `AIC`)
 ) +
     geom_point(size = 5) +
+    xlab("Quantidade de parâmetros") +
     ylab("AIC") +
     theme_bw()
 
