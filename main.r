@@ -98,3 +98,17 @@ acc_plot <- ggplot(
 
 ggarrange(aic_plot, acc_plot) %>%
     ggsave(filename = "assets/MetricasXParametros.png")
+
+
+selected_model <- all_models[[12]]
+
+png("assets/Residuos.png")
+arm::binnedplot(fitted(selected_model), 
+           residuals(selected_model, type = "response"), 
+           nclass = 15, 
+           xlab = "Valores Esperados", 
+           ylab = "Resíduo Médio", 
+           cex.pts = 1.5, 
+           col.pts = 1, 
+           col.int = "steelblue")
+dev.off()
