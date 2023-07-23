@@ -107,28 +107,34 @@ s_model_threshold <- model_info_to_plot[selected_index, "round_threshold"]
 pred_train <- as.numeric(fitted(selected_model) >= s_model_threshold)
 pred_test <- as.numeric(predict(selected_model, test, type = "response") >= s_model_threshold)
 
-png("assets/Residuos.png")
-par(mfrow = c(1,2))
-arm::binnedplot(fitted(selected_model), 
-           residuals(selected_model, type = "response"), 
-           nclass = 8, 
-           xlab = "Valores Esperados", 
-           ylab = "Resíduo Médio", 
-           cex.pts = 1.5, 
-           col.pts = 1, 
-           col.int = "steelblue",
-           main = "8 Agrupamentos")
-arm::binnedplot(fitted(selected_model), 
-           residuals(selected_model, type = "response"), 
-           nclass = 15, 
-           xlab = "Valores Esperados", 
-           ylab = "Resíduo Médio", 
-           cex.pts = 1.5, 
-           col.pts = 1, 
-           col.int = "steelblue",
-           main = "15 Agrupamentos")
-dev.off()
+bin_res <- arm::binned.resids(
+    fitted(selected_model), 
+    residuals(selected_model, type = "response"), 
+    nclass = 8)$binned %>% 
+    cbind("n_class" = 8) %>%
+    rbind(cbind(
+        arm::binned.resids(
+            fitted(selected_model), 
+            residuals(selected_model, type = "response"), 
+            nclass = 15)$binned,
+            "n_class" = 15
+        )) %>%
+    as.data.frame()
 
+(ggplot(data = bin_res) +
+    geom_point(aes(x = `xbar`, y = `ybar`, colour = "Resíduo Médio"), size = 5) +
+    geom_line(aes(x = `xbar`, y = `2se`, colour = "Tolerância"), linewidth = 2) +
+    geom_line(aes(x = `xbar`, y = -`2se`, colour = "Tolerância"), linewidth = 2) +
+    scale_color_manual(name = "", values = c("Resíduo Médio" = "black", "Tolerância" = "steelblue")) +
+    facet_wrap(vars(n_class), ncol=1, labeller = labeller(n_class = 
+        c(
+            "8" = "8 Agrupamentos",
+            "15" = "15 Agrupamentos"
+        )    
+    )) +
+    xlab("Valor Médio Predito") + ylab("Resíduo Médio") +
+    theme_bw()) %>%
+    ggsave(filename = "assets/Residuos.png")
 
 conf_mat <- confusionMatrix(factor(pred_test), factor(test$Poupanca), positive = "1")
 conf_mat$table
