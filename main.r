@@ -4,8 +4,10 @@ if (!require("pacman")) {
 pacman::p_load(
     "readxl", "dplyr", "purrr",
     "glue", "ggplot2", "ggpubr",
-    "kableExtra"
+    "kableExtra", "caret", "pROC",
+    "plotROC"
 )
+# install.packages("arm")
 source("auxiliar.r", encoding = "UTF-8")
 
 set.seed(2023)
@@ -38,11 +40,11 @@ g2 <- saturated_model$null.deviance - saturated_model$deviance
 g2_gl <- saturated_model$df.null - saturated_model$df.residual
 pchisq(g2, g2_gl, lower.tail = FALSE)
 
-model_info_to_plot <- data.frame(matrix(ncol = 7, nrow = n_models)) %>%
+model_info_to_plot <- data.frame(matrix(ncol = 8, nrow = n_models)) %>%
     rename_all(~ c(
         "Parametros", "n_parametros",
         "G^2", "g.l.", "p-valor",
-        "AIC", "ACC"
+        "AIC", "ACC", "round_threshold"
     ))
 
 for (i in 1:n_models) {
@@ -65,7 +67,7 @@ for (i in 1:n_models) {
         par = 0, fn = best_round_threshold, data = test, model = current_model,
         method = "Brent", lower = 0, upper = 1
     )$value
-
+    model_info_to_plot[i, "round_threshold"] <- threshold
     ytrue <- test$Poupanca
     yhat <- predict(current_model, test, type = "response") >= threshold
 
@@ -99,8 +101,11 @@ acc_plot <- ggplot(
 ggarrange(aic_plot, acc_plot) %>%
     ggsave(filename = "assets/MetricasXParametros.png")
 
-
-selected_model <- all_models[[12]]
+selected_index <- which.min(model_info_to_plot[["AIC"]])
+selected_model <- all_models[[selected_index]]
+s_model_threshold <- model_info_to_plot[selected_index, "round_threshold"]
+pred_train <- as.numeric(fitted(selected_model) >= s_model_threshold)
+pred_test <- as.numeric(predict(selected_model, test, type = "response") >= s_model_threshold)
 
 png("assets/Residuos.png")
 par(mfrow = c(1,2))
@@ -123,3 +128,22 @@ arm::binnedplot(fitted(selected_model),
            col.int = "steelblue",
            main = "15 Agrupamentos")
 dev.off()
+
+
+conf_mat <- confusionMatrix(factor(pred_test), factor(test$Poupanca), positive = "1")
+conf_mat$table
+conf_mat$byClass[c("Sensitivity", "Specificity")]
+
+png("assets/ROC.png")
+plot.roc(
+    test$Poupanca, predict(selected_model, test, type = "response"),
+    percent=TRUE,
+    print.thres=c(s_model_threshold, 0.569),
+    col = "red",
+    print.auc = TRUE,
+    xlab = "Sensibilidade",
+    ylab = "Especificidade"
+) 
+dev.off()
+
+confusionMatrix(factor(as.numeric(fitted(selected_model) >= s_model_threshold)), factor(train$Poupanca), positive = "1")
