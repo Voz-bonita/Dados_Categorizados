@@ -5,7 +5,7 @@ pacman::p_load(
     "readxl", "dplyr", "purrr",
     "glue", "ggplot2", "ggpubr",
     "kableExtra", "caret", "pROC",
-    "plotROC"
+    "plotROC", "tibble"
 )
 # install.packages("arm")
 source("auxiliar.r", encoding = "UTF-8")
@@ -185,3 +185,19 @@ data.frame(
     "Especificidade" = c("77%", "73%", "73%")
 ) %>%
     format_tab("\\label{tab:mod_comp}Comparação de desempenho preditivo entre os modelos possíveis.", format = "latex")
+
+coefs <- summary(selected_model)$coefficients %>% as.data.frame()
+low <- coefs[["Estimate"]] - qnorm(0.975)*coefs[["Std. Error"]]
+high <- coefs[["Estimate"]] + qnorm(0.975)*coefs[["Std. Error"]]
+
+coef_ic <- data.frame(
+    "Estimativa Pontual" = coefs[["Estimate"]],
+    "Limite Inferior" = low,
+    "Limite Superior" = high
+)
+rownames(coef_ic) <- rownames(coefs)
+coef_ic %>%
+    format_tab("\\label{tab:coef_ic}Estimativas pontuais e limites de 95\\% de confiança para os coeficientes da regressão", digits = 3)
+
+exp(coef_ic) %>%
+    format_tab("\\label{tab:coef_ic}Estimativas pontuais e limites de 95\\% de confiança para o efeito multiplicativo no odds ratio para cada coeficiente sob aumento de uma unidade", digits = 3)
