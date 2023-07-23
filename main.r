@@ -152,4 +152,36 @@ plot.roc(
 ) 
 dev.off()
 
-confusionMatrix(factor(as.numeric(fitted(selected_model) >= s_model_threshold)), factor(train$Poupanca), positive = "1")
+
+
+summary(selected_model)$coefficients %>%
+    as.data.frame() %>%
+    rename_all(~c("Estimativa", "Erro Padrão", "Z", "p-valor")) %>%
+    format_tab("\\label{tab:mod_params}Estimativas dos parâmetros para o modelo selecionado", digits = 3, format = "latex")
+
+no_sector_mod <- glm(data = train, formula = "Poupanca ~ Idade + Socioecon", family = "binomial")
+no_intercept_mod <- glm(data = train, formula = "Poupanca ~ 0 + Idade + Socioecon + Setor", family = "binomial")
+no_intercept_sector_mod <- glm(data = train, formula = "Poupanca ~ 0 + Idade + Socioecon", family = "binomial")
+
+summary(no_intercept_mod)$coefficients %>%
+    as.data.frame() %>%
+    rename_all(~c("Estimativa", "Erro Padrão", "Z", "p-valor")) %>%
+    format_tab("\\label{tab:mod_int_params}Estimativas dos parâmetros para o modelo sem intercepto", digits = 3, format = "latex")
+
+summary(no_intercept_sector_mod)$coefficients %>%
+    as.data.frame() %>%
+    rename_all(~c("Estimativa", "Erro Padrão", "Z", "p-valor")) %>%
+    format_tab("\\label{tab:mod_int_sec_params}Estimativas dos parâmetros para o modelo sem intercepto e sem a variável Setor", digits = 3, format = "latex")
+a <- confusionMatrix(factor(as.numeric(fitted(no_intercept_mod) >= 0.5)), factor(train$Poupanca), positive = "1")
+b <- confusionMatrix(factor(as.numeric(fitted(no_intercept_sector_mod) >= s_model_threshold)), factor(train$Poupanca), positive = "1")
+conf_mat
+a
+b
+
+data.frame(
+    "Modelo" = c(selected_model$formula, no_intercept_mod$formula, no_intercept_sector_mod$formula),
+    "Acurácia" = c("76%", "72%", "68%"),
+    "Sensibilidade" = c("75%", "71%", "64%"),
+    "Especificidade" = c("77%", "73%", "73%")
+) %>%
+    format_tab("\\label{tab:mod_comp}Comparação de desempenho preditivo entre os modelos possíveis.", format = "latex")
