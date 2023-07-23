@@ -98,7 +98,7 @@ acc_plot <- ggplot(
     theme_bw()
 
 
-ggarrange(aic_plot, acc_plot) %>%
+ggarrange(aic_plot, acc_plot, ncol = 1) %>%
     ggsave(filename = "assets/MetricasXParametros.png")
 
 selected_index <- which.min(model_info_to_plot[["AIC"]])
