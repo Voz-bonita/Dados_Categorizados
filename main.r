@@ -103,6 +103,16 @@ ggarrange(aic_plot, acc_plot) %>%
 selected_model <- all_models[[12]]
 
 png("assets/Residuos.png")
+par(mfrow = c(1,2))
+arm::binnedplot(fitted(selected_model), 
+           residuals(selected_model, type = "response"), 
+           nclass = 8, 
+           xlab = "Valores Esperados", 
+           ylab = "Resíduo Médio", 
+           cex.pts = 1.5, 
+           col.pts = 1, 
+           col.int = "steelblue",
+           main = "8 Agrupamentos")
 arm::binnedplot(fitted(selected_model), 
            residuals(selected_model, type = "response"), 
            nclass = 15, 
@@ -110,5 +120,6 @@ arm::binnedplot(fitted(selected_model),
            ylab = "Resíduo Médio", 
            cex.pts = 1.5, 
            col.pts = 1, 
-           col.int = "steelblue")
+           col.int = "steelblue",
+           main = "15 Agrupamentos")
 dev.off()
