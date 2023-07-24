@@ -5,21 +5,29 @@ pacman::p_load(
     "readxl", "dplyr", "purrr",
     "glue", "ggplot2", "ggpubr",
     "kableExtra", "caret", "pROC",
-    "plotROC", "tibble"
+    "plotROC", "tibble", "reticulate"
 )
 # install.packages("arm")
 source("auxiliar.r", encoding = "UTF-8")
 
-set.seed(2023)
+
 raw_data <- read_excel("dados_trabalho.xlsx") %>%
     rename_all(~ c("ID", "Idade", "Socioecon", "Casa", "Setor", "Poupanca")) %>%
     select(-c(ID))
-
 full_size <- nrow(raw_data)
 n_cols <- ncol(raw_data)
-sample_order <- sample(1:full_size, size = full_size, replace = FALSE)
-train <- raw_data[1:100, ]
-test <- raw_data[101:full_size, ]
+
+set.seed(531)
+iterations <- round(exp(runif(1, 0, full_size*log(2))))
+itertools <- import("itertools")
+all_combs <- itertools$combinations(seq(1, 197, 1), 100L)
+builtins <- import_builtins()
+for (i in 1:iterations) {
+   smp <- builtins[["next"]](all_combs)
+}
+train_indexes <- unlist(smp)
+train <- raw_data[train_indexes, ]
+test <- raw_data[-train_indexes, ]
 
 
 covariables <- names(train)[names(train) != "Poupanca"]
