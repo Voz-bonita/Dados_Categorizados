@@ -197,7 +197,7 @@ coef_ic <- data.frame(
 )
 rownames(coef_ic) <- rownames(coefs)
 coef_ic %>%
-    format_tab("\\label{tab:coef_ic}Estimativas pontuais e limites de 95\\% de confiança para os coeficientes da regressão", digits = 3)
+    format_tab("\\label{tab:coef_ic}Estimativas pontuais e limites de 95\\% de confiança para os coeficientes da regressão", digits = 3, format = "latex")
 
 exp(coef_ic) %>%
-    format_tab("\\label{tab:coef_ic}Estimativas pontuais e limites de 95\\% de confiança para o efeito multiplicativo no odds ratio para cada coeficiente sob aumento de uma unidade", digits = 3)
+    format_tab("\\label{tab:odds_ic}Estimativas pontuais e limites de 95\\% de confiança para o efeito multiplicativo no odds ratio para cada coeficiente sob aumento de uma unidade", digits = 3, format = "latex")
