@@ -209,3 +209,12 @@ coef_ic %>%
 
 exp(coef_ic) %>%
     format_tab("\\label{tab:odds_ic}Estimativas pontuais e limites de 95\\% de confiança para o efeito multiplicativo no odds ratio para cada coeficiente sob aumento de uma unidade", digits = 3, format = "latex")
+
+
+pacman::p_load("glmtoolbox", "rms")
+hl_out <- hltest(selected_model)
+pchisq(hl_out$statistic, 10 - length(selected_model$coefficients), lower.tail=F)
+
+hl_out$hm %>%
+    rename_all(~c("Grupo", "Tamanho", "Observado", "Esperado")) %>%
+    format_tab("\\label{tab:hltest}Grupos obtidos para o teste de Hosmer e Lemeshow para o modelo selecionado", digits = 3, format = "latex")
